@@ -24,7 +24,7 @@
 
 - (void) iOS8HWDecode:(NSData *) spsData ppsData:(NSData*) ppsData
 {
-    // 1. Get SPS,PPS form stream data, and create CMFormatDescription, VTDecompressionSession
+    // 1. 获取流数据的 SPS、PPS，并创建 CMFormatDescription 和 VTDecompressionSession
     if (spsData == nil && ppsData == nil) {
         uint8_t *data = pCodecCtx -> extradata;
         int size = pCodecCtx -> extradata_size;
@@ -76,7 +76,7 @@
             ppsData = [NSData dataWithBytes:&(data[startCodePPSIndex + 1]) length: ppsLength];
         }
         
-        // 2. create  CMFormatDescription
+        // 2. 创建  CMFormatDescription
         if (spsData != nil && ppsData != nil) {
             const uint8_t* const parameterSetPointers[2] = { (const uint8_t*)[spsData bytes], (const uint8_t*)[ppsData bytes] };
             const size_t parameterSetSizes[2] = { [spsData length], [ppsData length] };
@@ -84,7 +84,7 @@
                 NSLog(@"Found all data for CMVideoFormatDescription. Creation: %@.", (status == noErr) ? @"successfully." : @"failed.");
         }
         
-        // 3. create VTDecompressionSession
+        // 3. 创建 VTDecompressionSession
         VTDecompressionOutputCallbackRecord callback;
         callback.decompressionOutputCallback = didDecompress;
         callback.decompressionOutputRefCon = (__bridge void *)self;
@@ -111,12 +111,12 @@
     NSLog(@"NALU with Type \"%@\" received.", naluTypesStrings[nalu_type]);
     
     if (nalu_type == 1 || nalu_type == 5) {
-        // 4. get NALUnit payload into a CMBlockBuffer,
+        // 4. NALUnit -> CMBlockBuffer,
         CMBlockBufferRef videoBlock = NULL;
         status = CMBlockBufferCreateWithMemoryBlock(NULL, packet.data, packet.size, kCFAllocatorNull, NULL, 0, packet.size, 0, &videoBlock);
         NSLog(@"BlockBufferCreation: %@", (status == kCMBlockBufferNoErr) ? @"successfully." : @"failed.");
         
-        // 5.  making sure to replace the separator code with a 4 byte length code (the length of the NalUnit including the unit code)
+        // 5.  确保用4字节长度的代码替换分隔符代码（NalUnit 的长度，包括单位代码）
         int reomveHeaderSize = packet.size - 4;
         const uint8_t sourceBytes[] = {(uint8_t)(reomveHeaderSize >> 24), (uint8_t)(reomveHeaderSize >> 16), (uint8_t)(reomveHeaderSize >> 8), (uint8_t)reomveHeaderSize};
         status = CMBlockBufferReplaceDataBytes(sourceBytes, videoBlock, 0, 4);
@@ -129,14 +129,14 @@
         }
         NSLog(@"size = %i , 16Byte = %@",reomveHeaderSize,tmp3);
         
-        // 6. create a CMSampleBuffer.
+        // 6. 创建 CMSampleBuffer
         CMSampleBufferRef sbRef = NULL;
         const size_t sampleSizeArray[] = {packet.size};
         status = CMSampleBufferCreate(kCFAllocatorDefault, videoBlock, true, NULL, NULL, videoFormatDescr, 1, 0, NULL, 1, sampleSizeArray, &sbRef);
         
         NSLog(@"SampleBufferCreate: %@", (status == noErr) ? @"successfully." : @"failed.");
         
-        // 7. use VTDecompressionSessionDecodeFrame
+        // 7. 使用 VTDecompressionSessionDecodeFrame 解码视频帧
         VTDecodeFrameFlags flags = kVTDecodeFrame_EnableAsynchronousDecompression;
         VTDecodeInfoFlags flagOut;
         status = VTDecompressionSessionDecodeFrame(session, sbRef, flags, &sbRef, &flagOut);
@@ -164,7 +164,7 @@
 
 #pragma mark - VideoToolBox Decompress Frame CallBack
 /*
- This callback gets called everytime the decompresssion session decodes a frame
+ 解码会话每解码一帧就会执行该回调
  */
 void didDecompress( void *decompressionOutputRefCon, void *sourceFrameRefCon, OSStatus status, VTDecodeInfoFlags infoFlags, CVImageBufferRef imageBuffer, CMTime presentationTimeStamp, CMTime presentationDuration )
 {

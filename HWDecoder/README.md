@@ -4,7 +4,7 @@
 
 This class demo how to use VideoToolbox to make iOS hardware decode
 
-对 VideoToolbox 解码的封装。
+对 VideoToolbox 解码的封装。该代码依赖于 FFmpeg。
 
 ## HWDecoder Step
 

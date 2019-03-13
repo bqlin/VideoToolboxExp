@@ -18,6 +18,8 @@
 @optional
 
 -(void) startDecodeData;
+
+/// 解码数据回调
 -(void) getDecodeImageData:(CVImageBufferRef) imageBuffer;
 
 @end
